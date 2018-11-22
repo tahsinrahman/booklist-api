@@ -1,0 +1,14 @@
+# get list of books
+GET http://localhost:8080/books
+
+# add new book
+POST http://localhost:8080/books
+
+# get specific book
+GET http://localhost:8080/books/1
+
+# update specific book
+PUT http://localhost:8080/books/1
+
+# delete specific book
+DELETE http://localhost:8080/books/1
