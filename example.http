@@ -1,14 +1,66 @@
 # get list of books
 GET http://localhost:8080/books
 
-# add new book
-POST http://localhost:8080/books
 
-# get specific book
+# get book 1
 GET http://localhost:8080/books/1
 
-# update specific book
-PUT http://localhost:8080/books/1
+# get book 10
+GET http://localhost:8080/books/10
+
+# add new book 4
+POST http://localhost:8080/books
+Content-Type: application/json
+
+{
+  "name": "Understanding the Linux Kernel",
+  "isbn":"0596005652",
+  "authors": [
+    {
+      "first_name": "Daniel",
+      "last_name": "Bovet"
+    },
+    {
+      "first_name": "Marco",
+      "last_name": "cesati"
+    }
+  ]
+}
+
+# get book 4
+GET http://localhost:8080/books/4
+
+# get booklist
+GET http://localhost:8080/books
+
+# get book 4
+GET http://localhost:8080/books/4
+
+# update book 4
+PUT http://localhost:8080/books/4
+{
+  "name": "Understanding the Linux Kernel",
+  "isbn":"new_isbn",
+  "authors": [
+    {
+      "first_name": "Daniel",
+      "last_name": "Bovet"
+    },
+    {
+      "first_name": "Marco",
+      "last_name": "cesati"
+    }
+  ]
+}
+
+# get book 4
+GET http://localhost:8080/books/4
 
 # delete specific book
-DELETE http://localhost:8080/books/1
+DELETE http://localhost:8080/books/4
+
+# get book 4
+GET http://localhost:8080/books/4
+
+# get list of books
+GET http://localhost:8080/books
