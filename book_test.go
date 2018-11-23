@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -21,11 +22,14 @@ func init() {
 }
 
 type test struct {
-	method     string
-	url        string
-	request    string
-	response   string
-	statusCode int
+	method        string
+	url           string
+	request       string
+	response      string
+	statusCode    int
+	addAuthHeader bool
+	username      string
+	password      string
 }
 
 func TestGetListHandler(t *testing.T) {
@@ -69,7 +73,16 @@ func TestNewBookHandler(t *testing.T) {
 			method:     "POST",
 			url:        "/books",
 			request:    `{"name": "Understanding the Linux Kernel", "isbn":"0596005652", "authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
+			response:   `{"error": "user not found"}`,
+			statusCode: 401,
+		},
+		test{
+			method:     "POST",
+			url:        "/books",
+			request:    `{"name": "Understanding the Linux Kernel", "isbn":"0596005652", "authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
 			response:   `{"id":4,"name":"Understanding the Linux Kernel","isbn":"0596005652","authors":[{"first_name":"Daniel","last_name":"Bovet"},{"first_name":"Marco","last_name":"cesati"}]}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: 201,
 		},
 		test{
@@ -77,6 +90,8 @@ func TestNewBookHandler(t *testing.T) {
 			url:        "/books/4",
 			request:    "",
 			response:   `{"id":4,"name":"Understanding the Linux Kernel","isbn":"0596005652","authors":[{"first_name":"Daniel","last_name":"Bovet"},{"first_name":"Marco","last_name":"cesati"}]}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: 200,
 		},
 		test{
@@ -84,6 +99,8 @@ func TestNewBookHandler(t *testing.T) {
 			url:        "/books",
 			request:    `{"authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
 			response:   `{"error": "book name can't be empty"}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: http.StatusBadRequest,
 		},
 		test{
@@ -91,6 +108,8 @@ func TestNewBookHandler(t *testing.T) {
 			url:        "/books",
 			request:    `{"name": "Understanding the Linux Kernel", "isbn":"0596005652", "authors": [{"first_name": "", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
 			response:   `{"error": "author firstname can't be empty"}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: http.StatusBadRequest,
 		},
 	}
@@ -104,7 +123,16 @@ func TestUpdateBookHandler(t *testing.T) {
 			method:     "PUT",
 			url:        "/books/4",
 			request:    `{"name": "Understanding the Linux Kernel", "isbn":"new_isbn", "authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
+			response:   `{"error": "user not found"}`,
+			statusCode: 401,
+		},
+		test{
+			method:     "PUT",
+			url:        "/books/4",
+			request:    `{"name": "Understanding the Linux Kernel", "isbn":"new_isbn", "authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
 			response:   `{"id":4,"name":"Understanding the Linux Kernel","isbn":"new_isbn","authors":[{"first_name":"Daniel","last_name":"Bovet"},{"first_name":"Marco","last_name":"cesati"}]}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: 200,
 		},
 		test{
@@ -112,6 +140,8 @@ func TestUpdateBookHandler(t *testing.T) {
 			url:        "/books/4",
 			request:    "",
 			response:   `{"id":4,"name":"Understanding the Linux Kernel","isbn":"new_isbn","authors":[{"first_name":"Daniel","last_name":"Bovet"},{"first_name":"Marco","last_name":"cesati"}]}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: 200,
 		},
 		test{
@@ -119,6 +149,8 @@ func TestUpdateBookHandler(t *testing.T) {
 			url:        "/books/4",
 			request:    `{"name": "", "isbn":"new_isbn", "authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
 			response:   `{"error": "book name can't be empty"}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: http.StatusBadRequest,
 		},
 		test{
@@ -126,6 +158,8 @@ func TestUpdateBookHandler(t *testing.T) {
 			url:        "/books/4",
 			request:    `{"name": "Understanding the Linux Kernel", "isbn":"new_isbn", "authors": [{"first_name": "", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
 			response:   `{"error": "author firstname can't be empty"}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: http.StatusBadRequest,
 		},
 	}
@@ -139,7 +173,16 @@ func TestDeleteBookHandler(t *testing.T) {
 			method:     "DELETE",
 			url:        "/books/4",
 			request:    `{"name": "Understanding the Linux Kernel", "isbn":"new_isbn", "authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
+			response:   `{"error": "user not found"}`,
+			statusCode: 401,
+		},
+		test{
+			method:     "DELETE",
+			url:        "/books/4",
+			request:    `{"name": "Understanding the Linux Kernel", "isbn":"new_isbn", "authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
 			response:   `{"id":4,"name":"Understanding the Linux Kernel","isbn":"new_isbn","authors":[{"first_name":"Daniel","last_name":"Bovet"},{"first_name":"Marco","last_name":"cesati"}]}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: 200,
 		},
 		test{
@@ -147,6 +190,8 @@ func TestDeleteBookHandler(t *testing.T) {
 			url:        "/books/4",
 			request:    "",
 			response:   `{"error": "book not found"}`,
+			username:   "admin",
+			password:   "admin",
 			statusCode: 404,
 		},
 	}
@@ -156,11 +201,13 @@ func TestDeleteBookHandler(t *testing.T) {
 
 func runTest(t *testing.T, testSuite []test) {
 	for _, mytest := range testSuite {
-
 		r, err := http.NewRequest(mytest.method, mytest.url, strings.NewReader(mytest.request))
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		header := base64.StdEncoding.EncodeToString([]byte(mytest.username + ":" + mytest.password))
+		r.Header.Add("Authorization", "Basic "+header)
 
 		w := httptest.NewRecorder()
 
