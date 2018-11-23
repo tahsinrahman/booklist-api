@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -131,6 +132,10 @@ func NewBookHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(book); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
+	}
+
+	if err := checkNewBook(book); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -169,6 +174,11 @@ func UpdateBookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	newBook.ID = oldBook.ID
+
+	if err := checkNewBook(newBook); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -228,4 +238,16 @@ func writeError(w http.ResponseWriter, statusCode int, message string) {
 
 	w.WriteHeader(statusCode)
 	w.Write([]byte(message))
+}
+
+func checkNewBook(book *Book) error {
+	if book.Name == "" {
+		return errors.New("book name can't be empty")
+	}
+	for _, author := range book.Authors {
+		if author.FirstName == "" {
+			return errors.New("author firstname can't be empty")
+		}
+	}
+	return nil
 }

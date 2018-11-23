@@ -79,6 +79,20 @@ func TestNewBookHandler(t *testing.T) {
 			response:   `{"id":4,"name":"Understanding the Linux Kernel","isbn":"0596005652","authors":[{"first_name":"Daniel","last_name":"Bovet"},{"first_name":"Marco","last_name":"cesati"}]}`,
 			statusCode: 200,
 		},
+		test{
+			method:     "POST",
+			url:        "/books",
+			request:    `{"authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
+			response:   `{"error": "book name can't be empty"}`,
+			statusCode: http.StatusBadRequest,
+		},
+		test{
+			method:     "POST",
+			url:        "/books",
+			request:    `{"name": "Understanding the Linux Kernel", "isbn":"0596005652", "authors": [{"first_name": "", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
+			response:   `{"error": "author firstname can't be empty"}`,
+			statusCode: http.StatusBadRequest,
+		},
 	}
 
 	runTest(t, testSuite)
@@ -99,6 +113,20 @@ func TestUpdateBookHandler(t *testing.T) {
 			request:    "",
 			response:   `{"id":4,"name":"Understanding the Linux Kernel","isbn":"new_isbn","authors":[{"first_name":"Daniel","last_name":"Bovet"},{"first_name":"Marco","last_name":"cesati"}]}`,
 			statusCode: 200,
+		},
+		test{
+			method:     "PUT",
+			url:        "/books/4",
+			request:    `{"name": "", "isbn":"new_isbn", "authors": [{"first_name": "Daniel", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
+			response:   `{"error": "book name can't be empty"}`,
+			statusCode: http.StatusBadRequest,
+		},
+		test{
+			method:     "PUT",
+			url:        "/books/4",
+			request:    `{"name": "Understanding the Linux Kernel", "isbn":"new_isbn", "authors": [{"first_name": "", "last_name": "Bovet"}, {"first_name": "Marco", "last_name": "cesati"}]}`,
+			response:   `{"error": "author firstname can't be empty"}`,
+			statusCode: http.StatusBadRequest,
 		},
 	}
 
