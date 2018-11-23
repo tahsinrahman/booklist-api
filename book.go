@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 )
 
@@ -112,113 +113,117 @@ func GetBookHandler(w http.ResponseWriter, r *http.Request) {
 
 // NewBookHandler is handler for POST /books
 // adds a new book
-func NewBookHandler(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAuth(r); err != nil {
-		writeError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
+func NewBookHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		spew.Dump("inside func")
 
-	book := new(Book)
+		book := new(Book)
 
-	if err := json.NewDecoder(r.Body).Decode(book); err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-	}
+		if err := json.NewDecoder(r.Body).Decode(book); err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 
-	if err := checkNewBook(book); err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
+		if err := checkNewBook(book); err != nil {
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		}
 
-	mutex.Lock()
-	defer mutex.Unlock()
-	count++
+		mutex.Lock()
+		defer mutex.Unlock()
+		count++
 
-	book.ID = count
-	books = append(books, *book)
+		book.ID = count
+		books = append(books, *book)
 
-	b, err := json.Marshal(book)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+		b, err := json.Marshal(book)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 
-	w.WriteHeader(http.StatusCreated)
-	w.Write(b)
+		w.WriteHeader(http.StatusCreated)
+		w.Write(b)
+	})
 }
 
 // UpdateBookHandler is handler for PUT /books/{id}
 // updates the book information given by {id}
-func UpdateBookHandler(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAuth(r); err != nil {
-		writeError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
+func UpdateBookHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := CheckAuth(r); err != nil {
+			writeError(w, http.StatusUnauthorized, err.Error())
+			return
+		}
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+		vars := mux.Vars(r)
+		id := vars["id"]
 
-	oldBook, index := findBook(id)
-	if oldBook == nil {
-		writeError(w, http.StatusNotFound, "book not found")
-		return
-	}
+		oldBook, index := findBook(id)
+		if oldBook == nil {
+			writeError(w, http.StatusNotFound, "book not found")
+			return
+		}
 
-	newBook := new(Book)
-	if err := json.NewDecoder(r.Body).Decode(newBook); err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	newBook.ID = oldBook.ID
+		newBook := new(Book)
+		if err := json.NewDecoder(r.Body).Decode(newBook); err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		newBook.ID = oldBook.ID
 
-	if err := checkNewBook(newBook); err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
+		if err := checkNewBook(newBook); err != nil {
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		}
 
-	mutex.Lock()
-	defer mutex.Unlock()
-	books[index] = *newBook
+		mutex.Lock()
+		defer mutex.Unlock()
+		books[index] = *newBook
 
-	b, err := json.Marshal(newBook)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+		b, err := json.Marshal(newBook)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write(b)
+		w.WriteHeader(http.StatusOK)
+		w.Write(b)
+	})
 }
 
 // DeleteBookHandler is handler for DELETE /books/{id}
 // deletes the book given by {id}
-func DeleteBookHandler(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAuth(r); err != nil {
-		writeError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
+func DeleteBookHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := CheckAuth(r); err != nil {
+			writeError(w, http.StatusUnauthorized, err.Error())
+			return
+		}
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+		vars := mux.Vars(r)
+		id := vars["id"]
 
-	book, index := findBook(id)
-	if book == nil {
-		writeError(w, http.StatusNotFound, "book not found")
-		return
-	}
+		book, index := findBook(id)
+		if book == nil {
+			writeError(w, http.StatusNotFound, "book not found")
+			return
+		}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+		mutex.Lock()
+		defer mutex.Unlock()
 
-	books = append(books[:index], books[index+1:]...)
+		books = append(books[:index], books[index+1:]...)
 
-	b, err := json.Marshal(book)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+		b, err := json.Marshal(book)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write(b)
+		w.WriteHeader(http.StatusOK)
+		w.Write(b)
+	})
 }
 
 func findBook(id string) (*Book, int) {

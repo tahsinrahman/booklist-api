@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"net/http"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // User struct defines a user
@@ -42,4 +44,15 @@ func CheckAuth(r *http.Request) error {
 		}
 	}
 	return errors.New("user not found")
+}
+
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		spew.Dump("inside middleware")
+		if err := CheckAuth(r); err != nil {
+			writeError(w, http.StatusUnauthorized, err.Error())
+		} else {
+			next.ServeHTTP(w, r)
+		}
+	})
 }

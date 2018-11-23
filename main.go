@@ -11,10 +11,11 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books", GetListHandler).Methods("GET")
-	r.HandleFunc("/books", NewBookHandler).Methods("POST")
 	r.HandleFunc("/books/{id}", GetBookHandler).Methods("GET")
-	r.HandleFunc("/books/{id}", UpdateBookHandler).Methods("PUT")
-	r.HandleFunc("/books/{id}", DeleteBookHandler).Methods("DELETE")
+
+	r.Handle("/books", authMiddleware(NewBookHandler())).Methods("POST")
+	r.Handle("/books/{id}", authMiddleware(UpdateBookHandler())).Methods("PUT")
+	r.Handle("/books/{id}", authMiddleware(DeleteBookHandler())).Methods("DELETE")
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatal(err)
