@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 )
 
@@ -115,8 +114,6 @@ func GetBookHandler(w http.ResponseWriter, r *http.Request) {
 // adds a new book
 func NewBookHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		spew.Dump("inside func")
-
 		book := new(Book)
 
 		if err := json.NewDecoder(r.Body).Decode(book); err != nil {

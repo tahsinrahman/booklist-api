@@ -11,6 +11,7 @@ GET http://localhost:8080/books/10
 # add new book 4
 POST http://localhost:8080/books
 Content-Type: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
 
 {
   "name": "Understanding the Linux Kernel",
@@ -33,11 +34,9 @@ GET http://localhost:8080/books/4
 # get booklist
 GET http://localhost:8080/books
 
-# get book 4
-GET http://localhost:8080/books/4
-
 # update book 4
 PUT http://localhost:8080/books/4
+Authorization: Basic YWRtaW46YWRtaW4=
 {
   "name": "Understanding the Linux Kernel",
   "isbn":"new_isbn",
@@ -57,7 +56,14 @@ PUT http://localhost:8080/books/4
 GET http://localhost:8080/books/4
 
 # delete specific book
+# unauthorized user
 DELETE http://localhost:8080/books/4
+Authorization: Basic YWRtaW4yOmFkbWluMg==
+
+# delete specific book
+# authorized user
+DELETE http://localhost:8080/books/4
+Authorization: Basic YWRtaW46YWRtaW4=
 
 # get book 4
 GET http://localhost:8080/books/4

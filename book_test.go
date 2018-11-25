@@ -15,10 +15,11 @@ var router = mux.NewRouter()
 
 func init() {
 	router.HandleFunc("/books", GetListHandler).Methods("GET")
-	router.HandleFunc("/books", NewBookHandler).Methods("POST")
 	router.HandleFunc("/books/{id}", GetBookHandler).Methods("GET")
-	router.HandleFunc("/books/{id}", UpdateBookHandler).Methods("PUT")
-	router.HandleFunc("/books/{id}", DeleteBookHandler).Methods("DELETE")
+
+	router.Handle("/books", authMiddleware(NewBookHandler())).Methods("POST")
+	router.Handle("/books/{id}", authMiddleware(UpdateBookHandler())).Methods("PUT")
+	router.Handle("/books/{id}", authMiddleware(DeleteBookHandler())).Methods("DELETE")
 }
 
 type test struct {
