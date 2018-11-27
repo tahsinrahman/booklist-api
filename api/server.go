@@ -44,7 +44,9 @@ func StartServer(port int, timeout int) {
 	ctx, cancel := context.WithTimeout(context.Background(), shutDownTime)
 	defer cancel()
 
-	server.Shutdown(ctx)
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal(err)
+	}
 
 	log.Println("Shutting Down")
 }
