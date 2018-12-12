@@ -1,3 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-configs
+  namespace: default
+data:
+  port: "1234"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,7 +36,8 @@ spec:
           mountPath: /var/lib/docker
       - name: docker-container
         image: docker:18.09
-        command: ["docker", "run", "-p", "4000:8080", "tahsin/booklist-api:0.0.1"]
+        command: ["/bin/sh", "-c"]
+        args: ["docker run -p 4000:$PORT tahsin/booklist-api:0.0.1 --port=$PORT"]
         ports:
         - name: booklist-port
           containerPort: 4000
@@ -36,6 +45,11 @@ spec:
         env:
         - name: DOCKER_HOST
           value: tcp://localhost:2375
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: api-configs
+              key: port
 ---
 apiVersion: v1
 kind: Service
